@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#101827">
+<title>Lönekalkylator</title>
+<style>
+:root{--bg:#f3f5f8;--card:#fff;--ink:#172033;--muted:#687386;--line:#e4e8ef;--accent:#087f8c;--accent2:#e7f5f5;--good:#087a52;--bad:#b54747}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{background:#101827;color:white;padding:25px 18px 30px}header .wrap,main{max-width:900px;margin:auto}header h1{margin:0 0 5px;font-size:25px}header p{margin:0;color:#c5cfdd;font-size:14px}
+main{padding:18px 14px 48px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:17px;margin-bottom:14px;box-shadow:0 2px 8px #17203308}
+h2{font-size:17px;margin:0 0 14px}.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.field label{display:block;color:var(--muted);font-size:12px;font-weight:650;margin:0 0 5px}
+input{width:100%;border:1px solid #d8dee8;border-radius:9px;padding:11px 10px;font:inherit;color:var(--ink);background:white;min-width:0}input:focus{outline:2px solid #8bd0d2;border-color:var(--accent)}
+button,.filelabel{border:0;border-radius:10px;padding:11px 14px;font:600 14px system-ui;cursor:pointer;background:var(--accent);color:white}.secondary{background:#edf1f5;color:#263246}.danger{background:#fff0f0;color:var(--bad)}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.shift{border:1px solid var(--line);border-radius:12px;padding:12px;margin:10px 0}.shifthead{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-weight:650;font-size:14px}.shiftfields{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:9px}
+.summary{background:#101827;color:white;border-radius:16px;padding:19px}.summary .eyebrow{color:#bac6d5;font-size:12px;font-weight:700;letter-spacing:.06em}.total{font-size:34px;font-weight:800;letter-spacing:-1px;margin:3px 0 14px}.rows{display:grid;gap:9px}.r{display:flex;justify-content:space-between;gap:12px;font-size:14px}.r span:first-child{color:var(--muted)}.summary .r span:first-child{color:#bac6d5}.rule{height:1px;background:var(--line);margin:13px 0}.summary .rule{background:#354154}.net{color:#8de0bc;font-weight:800;font-size:18px}.hint{color:var(--muted);font-size:12px;margin:9px 0 0}.status{font-size:12px;color:var(--good);margin-left:auto}.pill{font-size:12px;background:var(--accent2);color:#086b75;padding:4px 8px;border-radius:30px}
+.obgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.obitem{background:#f8fafc;border-radius:10px;padding:10px}.obitem strong{display:block;font-size:13px}.obitem small{color:var(--muted)}
+footer{max-width:900px;margin:auto;padding:0 14px 30px;color:var(--muted);font-size:12px}
+@media(max-width:620px){.grid{grid-template-columns:1fr}.shiftfields{grid-template-columns:1fr 1fr}.shiftfields .date{grid-column:1/-1}.fields{gap:10px}.total{font-size:30px}}
+nav{display:flex;gap:4px;position:sticky;top:0;background:#fff;border:1px solid var(--line);border-radius:14px;padding:4px;z-index:2;margin-bottom:16px}nav a{flex:1;text-align:center;text-decoration:none;color:#304350;padding:12px 3px;border-radius:10px;font-weight:650;font-size:14px}nav a[aria-current]{background:#087f8c;color:white}.summary{margin-bottom:14px}main>.field{max-width:260px;margin-bottom:14px}.panel[hidden]{display:none}main{max-width:680px}/* Keep the native date picker clickable over the visible calendar symbol. */
+.calendar-field{position:relative;display:block}
+.calendar-field input{padding-right:48px;min-height:46px}
+.calendar-field::after{content:"";position:absolute;right:6px;top:50%;transform:translateY(-50%);width:36px;height:36px;border-radius:8px;background:#e7f5f5 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23086b75' stroke-width='2' stroke-linecap='round'%3E%3Crect x='3' y='5' width='18' height='16' rx='3'/%3E%3Cpath d='M7 3v4m10-4v4M3 10h18m-13 4h2m3 0h2'/%3E%3C/svg%3E") center/21px no-repeat;pointer-events:none}
+.calendar-field input::-webkit-calendar-picker-indicator{position:absolute;top:0;right:0;width:46px;height:100%;margin:0;padding:0;opacity:0;cursor:pointer}</style>
+<meta name="apple-mobile-web-app-capable" content="yes"><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-180.png"></head>
+<body>
+<header><div class="wrap"><h1>Lönkoll</h1><p>Registrera arbetspass, räkna OB automatiskt och följ din uppskattade lön.</p></div></header>
+<main><nav aria-label="Huvudmeny"><a href="#oversikt" aria-current="page">Min lön</a><a href="#pass" >Arbetspass</a><a href="#installningar" >Lön och tillägg</a></nav><div class="field"><label for="month">Lönemånad</label><span class="calendar-field"><input id="month" type="month"></span></div><div class="panel" id="oversikt" aria-label="Min lön" ><section class="summary">
+<div class="eyebrow">UPPSKATTAD LÖN EFTER SKATT</div>
+<div class="total" id="net">0 kr</div>
+<div class="rows">
+<div class="r"><span>Grundlön</span><strong id="base">0 kr</strong></div>
+<div class="r"><span>OB totalt</span><strong id="obTotal">0 kr</strong></div>
+<div class="r"><span>Egna tillägg</span><strong id="extraSum"></strong></div><div class="r"><span>Semesterersättning på grundlönen</span><strong id="vacationPay">0 kr</strong></div>
+<div class="r"><span>Bruttolön</span><strong id="gross">0 kr</strong></div>
+<div class="r"><span>Skatt, uppskattad</span><strong id="taxAmount">−0 kr</strong></div>
+<div class="rule"></div>
+<div class="r"><span>Att få ut</span><strong class="net" id="netSmall">0 kr</strong></div>
+</div>
+</section><section class="card"><h2>Sammanställning av timmar</h2>
+<div class="rows" id="hourRows"></div>
+<div class="rule"></div>
+<div class="rows" id="obRows"></div>
+</section></div><div class="panel" id="pass" aria-label="Arbetspass" hidden><section class="card">
+<h2>Fyll i en vecka i taget</h2>
+<p class="hint">Välj ett datum i veckan och skriv arbetstiderna en gång. Samma tider läggs automatiskt in måndag–fredag den veckan. Du kan sedan ändra enskilda pass vid behov.</p>
+<div class="fields">
+<div class="field"><label for="weekDate">Välj vecka (valfritt datum i veckan)</label><span class="calendar-field"><input id="weekDate" type="date"></span></div>
+<div class="field"><label for="weekStart">Starttid måndag–fredag</label><input id="weekStart" type="time" value="08:00"></div>
+<div class="field"><label for="weekEnd">Sluttid måndag–fredag</label><input id="weekEnd" type="time" value="16:00"></div>
+</div>
+<div class="actions"><button id="applyWeek">Fyll i måndag–fredag för veckan</button></div>
+<p class="hint">Om veckan går över ett månadsskifte läggs bara dagarna i vald lönemånad in. Andra veckor och helgpass påverkas inte.</p>
+<div class="rule"></div>
+<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><h2 style="margin:0">Arbetspass</h2><span class="pill" id="shiftCount">0 pass</span><span class="status" id="saveStatus">Sparas automatiskt i den här webbläsaren</span></div>
+<div id="shifts"></div>
+<div class="actions"><button id="addShift">+ Lägg till arbetspass</button></div>
+<p class="hint">Ange datum, start och sluttid. Om sluttiden är tidigare än starttiden räknas passet över midnatt. OB-timmar räknas minut för minut och varje minut får en OB-kategori.</p>
+</section></div><div class="panel" id="installningar" aria-label="Lön och tillägg" hidden><section class="card">
+<h2>Grundinställningar</h2>
+<div class="fields">
+<div class="field"><label for="wage">Timlön (kr)</label><input id="wage" type="number" min="0" step=".01" value="145"></div>
+<div class="field"><label for="vacation">Semesterersättning (%)</label><input id="vacation" type="number" min="0" step=".01" value="13.33"></div>
+<div class="field"><label for="tax">Preliminärt skatteavdrag (%)</label><input id="tax" type="number" min="0" step=".1" value="30"></div>
+
+</div>
+<p class="hint">Skatten är en förenklad uppskattning. För exakt nettolön behövs rätt skattetabell och kolumn.</p>
+</section><section class="card">
+<h2>Dina OB-nivåer</h2>
+<div class="fields">
+<div class="field"><label for="eveningRate">Kväll 18:00–22:30 (kr/tim)</label><input id="eveningRate" type="number" value="37" step=".01"></div>
+<div class="field"><label for="nightRate">Natt 22:30–07:00 (kr/tim)</label><input id="nightRate" type="number" value="48" step=".01"></div>
+<div class="field"><label for="weekendRate">Helg (kr/tim)</label><input id="weekendRate" type="number" value="88" step=".01"></div>
+<div class="field"><label for="holidayRate">Helgdag (kr/tim)</label><input id="holidayRate" type="number" value="88" step=".01"></div>
+</div>
+<p class="hint">OB-tiderna är avlästa från din lönespecifikation. Helg räknas fredag 22:30 till måndag 07:00. Markera helgdags-OB på passet vid behov.</p>
+</section><section class="card">
+<h2>Egna tillägg</h2><p class="hint">Lägg till exempelvis bonus eller övertid för vald månad. Ange antal timmar för timtillägg eller 1 för ett fast belopp.</p><form id="extraForm" class="fields"><label>Namn<input id="ename" required maxlength="80"></label><label>Antal<input id="qty" value="1" required min="0.01" step="any" type="number"></label><label>Kronor per enhet<input id="price" required min="0" step="0.01" type="number"></label><button>Lägg till</button></form><div id="extrasList"></div></section><section class="card">
+<h2>Spara och flytta dina uppgifter</h2>
+<p class="hint">Uppgifterna sparas automatiskt på den här enheten och i den här webbläsaren. Exportera en säkerhetskopia om du vill flytta uppgifterna till en annan dator eller mobil.</p>
+<div class="actions">
+<button id="export">Exportera säkerhetskopia</button>
+<label class="filelabel secondary" for="importFile">Importera säkerhetskopia</label><input id="importFile" type="file" accept="application/json" hidden>
+<button class="danger" id="clear">Rensa alla uppgifter</button>
+</div>
+</section></div></main>
+<footer>Beräkningen är en uppskattning och kan avvika från lönespecifikationen, bland annat vid raster, särskilda helgdagar, OB-regler och skatteavdrag. Obetalda raster behöver dras av genom att justera arbetspasset eller timmarna.</footer>
+<script>
+const ids=['weekDate','weekStart','weekEnd','wage','vacation','tax','month','eveningRate','nightRate','weekendRate','holidayRate'];
+const $=id=>document.getElementById(id);
+let extras=[];
+function validExtras(rows){return Array.isArray(rows)?rows.filter(r=>r&&typeof r.name==='string'&&typeof r.month==='string'&&Number.isFinite(r.amount)):[]}
+function showExtras(){
+ const list=$('extrasList');list.replaceChildren();let sum=0;
+ extras.forEach((row,i)=>{if(row.month!==$('month').value)return;
+ sum+=row.amount;const line=document.createElement('p'),del=document.createElement('button');
+ line.textContent=row.name+' · '+money(row.amount)+' ';del.textContent='Ta bort';del.className='danger';
+ del.onclick=()=>{extras.splice(i,1);update()};line.append(del);list.append(line)});
+ $('extraSum').textContent=money(sum);return sum
+}
+$('extraForm').onsubmit=e=>{e.preventDefault();extras.push({month:$('month').value,name:$('ename').value,amount:Number($('qty').value)*Number($('price').value)});e.target.reset();update()};
+let shifts=[];
+const today=new Date();
+$('month').value=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}`;
+$('weekDate').value=localDate(today);
+function money(n){return Math.round(n).toLocaleString('sv-SE')+' kr'}
+function timeText(minutes){const h=Math.floor(minutes/60),m=minutes%60;return `${h} h ${String(m).padStart(2,'0')} min`}
+function localDate(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+function save(){const data={settings:Object.fromEntries(ids.map(id=>[id,$(id).value])),extras,shifts};localStorage.setItem('plejdSalaryCalc',JSON.stringify(data));$('saveStatus').textContent='Sparat ✓';}
+function load(){try{const d=JSON.parse(localStorage.getItem('plejdSalaryCalc')||'null');if(d){extras=validExtras(d.extras);if(d.settings)ids.forEach(id=>{if(d.settings[id]!==undefined)$(id).value=d.settings[id]});shifts=Array.isArray(d.shifts)?d.shifts:[]}}catch(e){}}
+function renderShifts(){const root=$('shifts');root.innerHTML='';shifts.forEach((s,i)=>{if(s.date&&!s.date.startsWith($('month').value))return;const div=document.createElement('div');div.className='shift';div.innerHTML=`<div class="shifthead"><span>Pass ${i+1}</span><button class="danger" data-remove="${i}" type="button">Ta bort</button></div><div class="shiftfields"><div class="field date"><label>Datum</label><span class="calendar-field"><input type="date" data-i="${i}" data-k="date" value="${String(s.date||'').replace(/[^0-9:-]/g,'')}"></span></div><div class="field"><label>Starttid</label><input type="time" data-i="${i}" data-k="start" value="${String(s.start||'').replace(/[^0-9:-]/g,'')}"></div><div class="field"><label>Sluttid</label><input type="time" data-i="${i}" data-k="end" value="${String(s.end||'').replace(/[^0-9:-]/g,'')}"></div></div>`;const mark=document.createElement("label"),box=document.createElement("input");box.type="checkbox";box.style.width="auto";box.checked=!!s.holiday;box.onchange=()=>{s.holiday=box.checked;update()};mark.append(box," Helgdags-OB hela passet");div.append(mark);root.appendChild(div)});$('shiftCount').textContent=`${shifts.filter(s=>s.date?.startsWith($('month').value)&&s.start&&s.end).length} pass`}
+function calculate(){const totals={normal:0,evening:0,night:0,weekend:0,holiday:0};for(const s of shifts){if(!s.date?.startsWith($('month').value)||!s.start||!s.end||s.start===s.end)continue;const start=new Date(`${s.date}T${s.start}:00`),end=new Date(`${s.date}T${s.end}:00`);if(isNaN(start)||isNaN(end))continue;if(end<=start)end.setDate(end.getDate()+1);for(let t=new Date(start);t<end;t.setMinutes(t.getMinutes()+1)){const day=t.getDay(),m=t.getHours()*60+t.getMinutes();if(s.holiday)totals.holiday++;else if((day===5&&m>=1350)||day===6||day===0||(day===1&&m<420))totals.weekend++;else if(m>=1080&&m<1350)totals.evening++;else if(m>=1350||m<420)totals.night++;else totals.normal++}}
+const wage=+ $('wage').value||0,rateE=+$('eveningRate').value||0,rateN=+$('nightRate').value||0,rateW=+$('weekendRate').value||0,rateH=+$('holidayRate').value||0;
+const ob=(totals.evening/60)*rateE+(totals.night/60)*rateN+(totals.weekend/60)*rateW+(totals.holiday/60)*rateH;
+const base=((totals.normal+totals.evening+totals.night+totals.weekend+totals.holiday)/60)*wage;
+const vac=base*(+$('vacation').value||0)/100,gross=base+ob+vac+showExtras(),tax=gross*(+$('tax').value||0)/100,net=gross-tax;
+$('hourRows').innerHTML=`<div class="r"><span>Vanliga timmar</span><strong>${timeText(totals.normal)}</strong></div><div class="r"><span>Totala timmar</span><strong>${timeText(totals.normal+totals.evening+totals.night+totals.weekend+totals.holiday)}</strong></div>`;
+$('obRows').innerHTML=`<div class="r"><span>Kvälls-OB (${rateE} kr)</span><strong>${timeText(totals.evening)}</strong></div><div class="r"><span>Natt-OB (${rateN} kr)</span><strong>${timeText(totals.night)}</strong></div><div class="r"><span>Helg-OB (${rateW} kr)</span><strong>${timeText(totals.weekend)}</strong></div><div class="r"><span>Helgdag (${rateH} kr)</span><strong>${timeText(totals.holiday)}</strong></div>`;
+$('net').textContent=money(net);$('netSmall').textContent=money(net);$('base').textContent=money(base);$('obTotal').textContent=money(ob);$('vacationPay').textContent=money(vac);$('gross').textContent=money(gross);$('taxAmount').textContent='−'+money(tax);
+}
+function update(){calculate();save()}
+$('addShift').onclick=()=>{shifts.push({date:$('month').value?$('month').value+'-01':localDate(today),start:'',end:''});renderShifts();update()};
+$('applyWeek').onclick=()=>{
+ const selected=$('weekDate').value, month=$('month').value, start=$('weekStart').value, end=$('weekEnd').value;
+ if(!selected||!month||!start||!end){alert('Välj vecka, lönemånad och arbetstider.');return}
+ const d=new Date(selected+'T12:00:00');d.setDate(d.getDate()-((d.getDay()+6)%7));
+ const dates=[];for(let i=0;i<5;i++){const day=new Date(d);day.setDate(d.getDate()+i);const date=localDate(day);if(date.startsWith(month+'-'))dates.push(date)}
+ if(!dates.length){alert('Den valda veckan har inga vardagar i vald lönemånad.');return}
+ shifts=shifts.filter(s=>!dates.includes(s.date));
+ for(const date of dates)shifts.push({date,start,end});
+ shifts.sort((a,b)=>(a.date||'').localeCompare(b.date||''));renderShifts();update();
+};
+$('shifts').addEventListener('input',e=>{const i=e.target.dataset.i,k=e.target.dataset.k;if(i!==undefined&&k){shifts[+i][k]=e.target.value;update()}});
+$('shifts').addEventListener('click',e=>{if(e.target.dataset.remove!==undefined){shifts.splice(+e.target.dataset.remove,1);renderShifts();update()}});
+ids.forEach(id=>$(id).addEventListener('input',update));
+$('export').onclick=()=>{const blob=new Blob([JSON.stringify({settings:Object.fromEntries(ids.map(id=>[id,$(id).value])),extras,shifts},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='lonedata-backup.json';a.click();URL.revokeObjectURL(a.href)};
+$('importFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const d=JSON.parse(await f.text());extras=validExtras(d.extras);if(d.settings)ids.forEach(id=>{if(d.settings[id]!==undefined)$(id).value=d.settings[id]});if(Array.isArray(d.shifts))shifts=d.shifts;renderShifts();update()}catch(err){alert('Filen kunde inte läsas. Välj en giltig säkerhetskopia.')}e.target.value=''};
+$('clear').onclick=()=>{if(confirm('Vill du radera alla sparade inställningar och arbetspass?')){localStorage.removeItem('plejdSalaryCalc');extras=[];shifts=[];ids.forEach(id=>{if(id==='month')$(id).value=`${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}`;else $(id).value=({weekDate:localDate(today),weekStart:'08:00',weekEnd:'16:00',wage:'145',vacation:'13.33',tax:'30',eveningRate:'37',nightRate:'48',weekendRate:'88',holidayRate:'88'})[id]});renderShifts();update()}};
+$('month').addEventListener('input',renderShifts);load();renderShifts();calculate();
+function activateView(){
+ const panels=Array.from(document.querySelectorAll('.panel'));
+ const active=panels.find(panel=>'#'+panel.id===location.hash)||panels[0];
+ for(const panel of panels)panel.hidden=panel!==active;
+ for(const link of document.querySelectorAll('nav a')){
+   if(link.hash==='#'+active.id)link.setAttribute('aria-current','page');
+   else link.removeAttribute('aria-current');
+ }
+ window.scrollTo(0,0);
+}
+window.addEventListener('hashchange',activateView);
+activateView();
+</script>
+<script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});</script></body></html>
